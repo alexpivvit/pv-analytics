@@ -284,7 +284,7 @@ var PvAnalytics = /*#__PURE__*/function () {
       }
 
       if (this._preserve_utm && (typeof sessionStorage === "undefined" ? "undefined" : _typeof(sessionStorage)) === "object") {
-        Object.keys(sessionStorage).forEach(function (key) {
+        ___default["default"].uniq(Object.keys(query).concat(Object.keys(sessionStorage))).forEach(function (key) {
           if (/^utm_.*/.test(key)) {
             if (query[key]) {
               sessionStorage.setItem(key, query[key]);

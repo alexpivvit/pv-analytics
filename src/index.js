@@ -183,7 +183,7 @@ class PvAnalytics {
         }
 
         if (this._preserve_utm && typeof sessionStorage === "object") {
-            Object.keys(sessionStorage)
+            _.uniq(Object.keys(query).concat(Object.keys(sessionStorage)))
                 .forEach((key) => {
                     if (/^utm_.*/.test(key)) {
                         if (query[key]) {
