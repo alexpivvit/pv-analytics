@@ -81,6 +81,7 @@ var PvAnalytics = /*#__PURE__*/function () {
     this._app = options.app;
     this._defaults = {};
     this._debug = !!options.debug;
+    this._preserve_utm = !!options.preserve_utm;
     this._is_enabled = false;
     this._is_incognito = false;
     this._is_initialized = false;
@@ -253,6 +254,7 @@ var PvAnalytics = /*#__PURE__*/function () {
         referring_url: this._getReferringUrl(),
         is_incognito: this._is_incognito,
         query_params: this._getQueryParams(),
+        page_load_time: 0,
         user_data: user_data
       });
 
@@ -278,6 +280,18 @@ var PvAnalytics = /*#__PURE__*/function () {
       if ((typeof window === "undefined" ? "undefined" : _typeof(window)) === "object" && typeof URLSearchParams === "function") {
         new URLSearchParams(window.location.search).forEach(function (value, key) {
           return query[key] = value.replace(/\/$/, "");
+        });
+      }
+
+      if (this._preserve_utm && (typeof sessionStorage === "undefined" ? "undefined" : _typeof(sessionStorage)) === "object") {
+        Object.keys(sessionStorage).forEach(function (key) {
+          if (/^utm_.*/.test(key)) {
+            if (query[key]) {
+              sessionStorage.setItem(key, query[key]);
+            } else {
+              query[key] = sessionStorage.getItem(key);
+            }
+          }
         });
       }
 
