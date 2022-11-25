@@ -338,16 +338,16 @@ var PvAnalytics = /*#__PURE__*/function () {
     value: function _getReferringUrl() {
       var referrer = null;
 
-      if (this._app && this._app.$route && this._isValidHttpUrl(this._app.$route.query.referrer)) {
-        referrer = this._app.$route.query.referrer;
-      }
-
-      if (!referrer && document) {
+      if ((typeof document === "undefined" ? "undefined" : _typeof(document)) === "object") {
         referrer = document.referrer;
       }
 
-      if (!referrer && sessionStorage) {
-        referrer = sessionStorage.get("_referrer");
+      if (this._app && this._app.$route && this._isValidHttpUrl(this._app.$route.query.referrer) && !referrer) {
+        referrer = this._app.$route.query.referrer;
+      }
+
+      if (!referrer && (typeof sessionStorage === "undefined" ? "undefined" : _typeof(sessionStorage)) === "object") {
+        referrer = sessionStorage.getItem("_referrer");
       }
 
       return referrer || null;
