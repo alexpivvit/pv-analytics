@@ -232,18 +232,24 @@ class PvAnalytics {
     }
 
     _getReferringUrl() {
+        let referrer = null;
+
         if (this._app &&
             this._app.$route &&
             this._isValidHttpUrl(this._app.$route.query.referrer)
         ) {
-            return this._app.$route.query.referrer;
+            referrer = this._app.$route.query.referrer;
         }
 
-        if (document) {
-            return document.referrer;
+        if (!referrer && document) {
+            referrer = document.referrer;
         }
 
-        return null;
+        if (!referrer && sessionStorage) {
+            referrer = sessionStorage.get("_referrer");
+        }
+
+        return referrer || null;
     }
 
     _log(msg) {
