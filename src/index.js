@@ -234,19 +234,20 @@ class PvAnalytics {
     _getReferringUrl() {
         let referrer = null;
 
+        if (typeof document === "object") {
+            referrer = document.referrer;
+        }
+
         if (this._app &&
             this._app.$route &&
-            this._isValidHttpUrl(this._app.$route.query.referrer)
+            this._isValidHttpUrl(this._app.$route.query.referrer) &&
+            !referrer
         ) {
             referrer = this._app.$route.query.referrer;
         }
 
-        if (!referrer && document) {
-            referrer = document.referrer;
-        }
-
-        if (!referrer && sessionStorage) {
-            referrer = sessionStorage.get("_referrer");
+        if (!referrer && typeof sessionStorage === "object") {
+            referrer = sessionStorage.getItem("_referrer");
         }
 
         return referrer || null;
