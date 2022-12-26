@@ -22,6 +22,7 @@ class PvAnalytics {
         this._is_incognito = false;
         this._is_initialized = false;
         this._event_queue = [];
+        this._session_domain = options.session_domain || window.location.host;
 
         if (options.app_token) {
             this.app_token = options.app_token;
@@ -126,7 +127,11 @@ class PvAnalytics {
 
                     if (session_token) {
                         this._is_initialized = true;
-                        cookie.set(SESSION_COOKIE_NAME, session_token);
+
+                        cookie.set(SESSION_COOKIE_NAME, session_token, {
+                            path: "/",
+                            domain: this._session_domain
+                        });
                     } else {
                         this._endSession();
                     }
@@ -142,7 +147,11 @@ class PvAnalytics {
 
     _endSession() {
         this._is_initialized = false;
-        cookie.remove(SESSION_COOKIE_NAME);
+
+        cookie.remove(SESSION_COOKIE_NAME, {
+            path: "/",
+            domain: this._session_domain
+        });
     }
 
     _sendEvent(event_name, user_data = {}) {
