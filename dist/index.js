@@ -86,6 +86,7 @@ var PvAnalytics = /*#__PURE__*/function () {
     this._is_incognito = false;
     this._is_initialized = false;
     this._event_queue = [];
+    this._session_domain = options.session_domain || window.location.host;
 
     if (options.app_token) {
       this.app_token = options.app_token;
@@ -218,7 +219,10 @@ var PvAnalytics = /*#__PURE__*/function () {
 
           if (_session_token) {
             _this2._is_initialized = true;
-            cookie__default["default"].set(SESSION_COOKIE_NAME, _session_token);
+            cookie__default["default"].set(SESSION_COOKIE_NAME, _session_token, {
+              path: "/",
+              domain: _this2._session_domain
+            });
           } else {
             _this2._endSession();
           }
@@ -235,7 +239,10 @@ var PvAnalytics = /*#__PURE__*/function () {
     key: "_endSession",
     value: function _endSession() {
       this._is_initialized = false;
-      cookie__default["default"].remove(SESSION_COOKIE_NAME);
+      cookie__default["default"].remove(SESSION_COOKIE_NAME, {
+        path: "/",
+        domain: this._session_domain
+      });
     }
   }, {
     key: "_sendEvent",
