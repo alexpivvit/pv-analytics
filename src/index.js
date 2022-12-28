@@ -91,7 +91,13 @@ class PvAnalytics {
     }
 
     getSessionToken() {
-        return cookie.get(SESSION_COOKIE_NAME);
+        let session_token = cookie.get(SESSION_COOKIE_NAME);
+
+        if (!session_token && typeof sessionStorage === "object") {
+            session_token = sessionStorage.getItem(SESSION_COOKIE_NAME);
+        }
+
+        return session_token;
     }
 
     _processQueuedEvents() {
@@ -132,6 +138,10 @@ class PvAnalytics {
                             path: "/",
                             domain: this._session_domain
                         });
+
+                        if (typeof sessionStorage === "object") {
+                            sessionStorage.setItem(SESSION_COOKIE_NAME, session_token);
+                        }
                     } else {
                         this._endSession();
                     }
@@ -152,6 +162,10 @@ class PvAnalytics {
             path: "/",
             domain: this._session_domain
         });
+
+        if (typeof sessionStorage === "object") {
+            sessionStorage.removeItem(SESSION_COOKIE_NAME);
+        }
     }
 
     _sendEvent(event_name, user_data = {}) {

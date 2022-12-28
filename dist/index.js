@@ -180,7 +180,13 @@ var PvAnalytics = /*#__PURE__*/function () {
   }, {
     key: "getSessionToken",
     value: function getSessionToken() {
-      return cookie__default["default"].get(SESSION_COOKIE_NAME);
+      var session_token = cookie__default["default"].get(SESSION_COOKIE_NAME);
+
+      if (!session_token && (typeof sessionStorage === "undefined" ? "undefined" : _typeof(sessionStorage)) === "object") {
+        session_token = sessionStorage.getItem(SESSION_COOKIE_NAME);
+      }
+
+      return session_token;
     }
   }, {
     key: "_processQueuedEvents",
@@ -223,6 +229,10 @@ var PvAnalytics = /*#__PURE__*/function () {
               path: "/",
               domain: _this2._session_domain
             });
+
+            if ((typeof sessionStorage === "undefined" ? "undefined" : _typeof(sessionStorage)) === "object") {
+              sessionStorage.setItem(SESSION_COOKIE_NAME, _session_token);
+            }
           } else {
             _this2._endSession();
           }
@@ -243,6 +253,10 @@ var PvAnalytics = /*#__PURE__*/function () {
         path: "/",
         domain: this._session_domain
       });
+
+      if ((typeof sessionStorage === "undefined" ? "undefined" : _typeof(sessionStorage)) === "object") {
+        sessionStorage.removeItem(SESSION_COOKIE_NAME);
+      }
     }
   }, {
     key: "_sendEvent",
