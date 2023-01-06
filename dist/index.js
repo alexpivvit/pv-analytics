@@ -87,6 +87,7 @@ var PvAnalytics = /*#__PURE__*/function () {
     this._is_initialized = false;
     this._event_queue = [];
     this._session_domain = options.session_domain || window.location.host;
+    this._error_callback = options.error_callback;
 
     if (options.app_token) {
       this.app_token = options.app_token;
@@ -135,7 +136,11 @@ var PvAnalytics = /*#__PURE__*/function () {
       }).then(function () {
         return _this._processQueuedEvents();
       })["catch"](function (error) {
-        return _this._log(error);
+        _this._log(error);
+
+        if (typeof _this._error_callback === "function") {
+          _this._error_callback(error);
+        }
       });
     }
   }, {
@@ -243,6 +248,10 @@ var PvAnalytics = /*#__PURE__*/function () {
         _this2._endSession();
 
         _this2._log(error);
+
+        if (typeof _this2._error_callback === "function") {
+          _this2._error_callback(error);
+        }
       });
     }
   }, {
@@ -286,7 +295,11 @@ var PvAnalytics = /*#__PURE__*/function () {
       }
 
       return axios__namespace.post("".concat(this.base_url, "/event"), params)["catch"](function (error) {
-        return _this3._log(error);
+        _this3._log(error);
+
+        if (typeof _this3._error_callback === "function") {
+          _this3._error_callback(error);
+        }
       });
     }
   }, {
