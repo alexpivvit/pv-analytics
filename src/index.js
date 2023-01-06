@@ -23,6 +23,7 @@ class PvAnalytics {
         this._is_initialized = false;
         this._event_queue = [];
         this._session_domain = options.session_domain || window.location.host;
+        this._error_callback = options.error_callback;
 
         if (options.app_token) {
             this.app_token = options.app_token;
@@ -58,7 +59,13 @@ class PvAnalytics {
             .then((result) => this._is_incognito = result.isPrivate)
             .then(() => this._startSession())
             .then(() => this._processQueuedEvents())
-            .catch((error) => this._log(error));
+            .catch((error) => {
+                this._log(error);
+
+                if (typeof this._error_callback === "function") {
+                    this._error_callback(error);
+                }
+            });
     }
 
     setDefaults(defaults = {}) {
@@ -152,6 +159,10 @@ class PvAnalytics {
             .catch((error) => {
                 this._endSession();
                 this._log(error);
+
+                if (typeof this._error_callback === "function") {
+                    this._error_callback(error);
+                }
             });
     }
 
@@ -190,7 +201,13 @@ class PvAnalytics {
         }
 
         return axios.post(`${this.base_url}/event`, params)
-            .catch((error) => this._log(error));
+            .catch((error) => {
+                this._log(error);
+
+                if (typeof this._error_callback === "function") {
+                    this._error_callback(error);
+                }
+            });
     }
 
     _getQueryParams() {
