@@ -129,7 +129,7 @@ var PvAnalytics = /*#__PURE__*/function () {
         });
       }
 
-      return _detectIncognito().then(function (result) {
+      return this._detectIncognito().then(function (result) {
         return _this._is_incognito = result;
       }).then(function () {
         return _this._startSession();

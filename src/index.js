@@ -55,7 +55,7 @@ class PvAnalytics {
             return new Promise((resolve) => resolve());
         }
 
-        return _detectIncognito()
+        return this._detectIncognito()
             .then((result) => this._is_incognito = result)
             .then(() => this._startSession())
             .then(() => this._processQueuedEvents())
