@@ -52,7 +52,11 @@ class PvAnalytics {
         this._is_enabled = typeof window === "object";
     }
 
-    init() {
+    init(retry_attempts = null) {
+        if (_.isNull(retry_attempts)) {
+            retry_attempts = this._retry_attempts;
+        }
+
         if (!this._is_enabled) {
             this._log("service is disabled");
             return new Promise((resolve) => resolve());
@@ -71,12 +75,9 @@ class PvAnalytics {
 
                 if (this._retry_on_failure &&
                     this._retry_delay > 0 &&
-                    this._retry_attempts > 0
+                    retry_attempts > 0
                 ) {
-                    setTimeout(() => {
-                        this._retry_attempts--;
-                        this.init();
-                    }, this._retry_delay);
+                    setTimeout(() => this.init(--retry_attempts), this._retry_delay);
                 }
             });
     }
@@ -179,11 +180,7 @@ class PvAnalytics {
             })
             .catch((error) => {
                 this._endSession();
-                this._log(error);
-
-                if (typeof this._error_callback === "function") {
-                    this._error_callback(error);
-                }
+                throw error;
             });
     }
 
@@ -200,7 +197,11 @@ class PvAnalytics {
         }
     }
 
-    _sendEvent(event_name, user_data = {}) {
+    _sendEvent(event_name, user_data = {}, retry_attempts = null) {
+        if (_.isNull(retry_attempts)) {
+            retry_attempts = this._retry_attempts;
+        }
+
         const params = _.extend({}, this._defaults, {
             session_token: this.getSessionToken(),
             event_name,
@@ -227,6 +228,13 @@ class PvAnalytics {
 
                 if (typeof this._error_callback === "function") {
                     this._error_callback(error);
+                }
+
+                if (this._retry_on_failure &&
+                    this._retry_delay > 0 &&
+                    retry_attempts > 0
+                ) {
+                    setTimeout(() => this._sendEvent(event_name, user_data, --retry_attempts), this._retry_delay);
                 }
             });
     }
@@ -325,7 +333,7 @@ class PvAnalytics {
         
         try {
           url = new URL(string);
-        } catch (_) {
+        } catch {
           return false;  
         }
       
