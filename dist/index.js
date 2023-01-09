@@ -85,6 +85,9 @@ var PvAnalytics = /*#__PURE__*/function () {
     this._is_enabled = false;
     this._is_incognito = false;
     this._is_initialized = false;
+    this._retry_on_failure = options.retry_on_failure || false;
+    this._retry_delay = options.retry_delay || 250;
+    this._retry_attempts = options.retry_attempts || 1;
     this._event_queue = [];
     this._session_domain = options.session_domain || window.location.host;
     this._error_callback = options.error_callback;
@@ -140,6 +143,14 @@ var PvAnalytics = /*#__PURE__*/function () {
 
         if (typeof _this._error_callback === "function") {
           _this._error_callback(error);
+        }
+
+        if (_this._retry_on_failure && _this._retry_delay > 0 && _this._retry_attempts > 0) {
+          setTimeout(function () {
+            _this._retry_attempts--;
+
+            _this.init();
+          }, _this._retry_delay);
         }
       });
     }

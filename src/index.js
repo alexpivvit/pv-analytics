@@ -21,6 +21,9 @@ class PvAnalytics {
         this._is_enabled = false;
         this._is_incognito = false;
         this._is_initialized = false;
+        this._retry_on_failure = options.retry_on_failure || false;
+        this._retry_delay = options.retry_delay || 250;
+        this._retry_attempts = options.retry_attempts || 1;
         this._event_queue = [];
         this._session_domain = options.session_domain || window.location.host;
         this._error_callback = options.error_callback;
@@ -64,6 +67,16 @@ class PvAnalytics {
 
                 if (typeof this._error_callback === "function") {
                     this._error_callback(error);
+                }
+
+                if (this._retry_on_failure &&
+                    this._retry_delay > 0 &&
+                    this._retry_attempts > 0
+                ) {
+                    setTimeout(() => {
+                        this._retry_attempts--;
+                        this.init();
+                    }, this._retry_delay);
                 }
             });
     }
