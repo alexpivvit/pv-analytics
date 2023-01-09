@@ -129,8 +129,8 @@ var PvAnalytics = /*#__PURE__*/function () {
         });
       }
 
-      return detectIncognito.detectIncognito().then(function (result) {
-        return _this._is_incognito = result.isPrivate;
+      return _detectIncognito().then(function (result) {
+        return _this._is_incognito = result;
       }).then(function () {
         return _this._startSession();
       }).then(function () {
@@ -192,6 +192,17 @@ var PvAnalytics = /*#__PURE__*/function () {
       }
 
       return session_token;
+    }
+  }, {
+    key: "_detectIncognito",
+    value: function _detectIncognito() {
+      return new Promise(function (resolve) {
+        detectIncognito.detectIncognito().then(function (result) {
+          return resolve(!!result.isPrivate);
+        })["catch"](function () {
+          return resolve(false);
+        });
+      });
     }
   }, {
     key: "_processQueuedEvents",
