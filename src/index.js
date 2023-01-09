@@ -55,8 +55,8 @@ class PvAnalytics {
             return new Promise((resolve) => resolve());
         }
 
-        return detectIncognito()
-            .then((result) => this._is_incognito = result.isPrivate)
+        return _detectIncognito()
+            .then((result) => this._is_incognito = result)
             .then(() => this._startSession())
             .then(() => this._processQueuedEvents())
             .catch((error) => {
@@ -105,6 +105,14 @@ class PvAnalytics {
         }
 
         return session_token;
+    }
+
+    _detectIncognito() {
+        return new Promise((resolve) => {
+            detectIncognito()
+                .then((result) => resolve(!!result.isPrivate))
+                .catch(() => resolve(false));
+        })
     }
 
     _processQueuedEvents() {
