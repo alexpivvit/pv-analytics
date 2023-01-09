@@ -124,6 +124,12 @@ var PvAnalytics = /*#__PURE__*/function () {
     value: function init() {
       var _this = this;
 
+      var retry_attempts = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
+
+      if (___default["default"].isNull(retry_attempts)) {
+        retry_attempts = this._retry_attempts;
+      }
+
       if (!this._is_enabled) {
         this._log("service is disabled");
 
@@ -145,11 +151,9 @@ var PvAnalytics = /*#__PURE__*/function () {
           _this._error_callback(error);
         }
 
-        if (_this._retry_on_failure && _this._retry_delay > 0 && _this._retry_attempts > 0) {
+        if (_this._retry_on_failure && _this._retry_delay > 0 && retry_attempts > 0) {
           setTimeout(function () {
-            _this._retry_attempts--;
-
-            _this.init();
+            return _this.init(--retry_attempts);
           }, _this._retry_delay);
         }
       });
@@ -269,11 +273,7 @@ var PvAnalytics = /*#__PURE__*/function () {
       })["catch"](function (error) {
         _this2._endSession();
 
-        _this2._log(error);
-
-        if (typeof _this2._error_callback === "function") {
-          _this2._error_callback(error);
-        }
+        throw error;
       });
     }
   }, {
@@ -295,6 +295,11 @@ var PvAnalytics = /*#__PURE__*/function () {
       var _this3 = this;
 
       var user_data = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      var retry_attempts = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
+
+      if (___default["default"].isNull(retry_attempts)) {
+        retry_attempts = this._retry_attempts;
+      }
 
       var params = ___default["default"].extend({}, this._defaults, {
         session_token: this.getSessionToken(),
@@ -321,6 +326,12 @@ var PvAnalytics = /*#__PURE__*/function () {
 
         if (typeof _this3._error_callback === "function") {
           _this3._error_callback(error);
+        }
+
+        if (_this3._retry_on_failure && _this3._retry_delay > 0 && retry_attempts > 0) {
+          setTimeout(function () {
+            return _this3._sendEvent(event_name, user_data, --retry_attempts);
+          }, _this3._retry_delay);
         }
       });
     }
@@ -422,7 +433,7 @@ var PvAnalytics = /*#__PURE__*/function () {
 
       try {
         url = new URL(string);
-      } catch (_) {
+      } catch (_unused) {
         return false;
       }
 
