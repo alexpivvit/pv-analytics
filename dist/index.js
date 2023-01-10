@@ -1,6 +1,6 @@
 'use strict';
 
-var detectIncognito = require('detect-incognito');
+var detectincognitojs = require('detectincognitojs');
 var Bowser = require('bowser');
 var axios = require('axios');
 var cookie = require('js-cookie');
@@ -212,7 +212,7 @@ var PvAnalytics = /*#__PURE__*/function () {
     key: "_detectIncognito",
     value: function _detectIncognito() {
       return new Promise(function (resolve) {
-        detectIncognito.detectIncognito().then(function (result) {
+        detectincognitojs.detectIncognito().then(function (result) {
           return resolve(!!result.isPrivate);
         })["catch"](function () {
           return resolve(false);

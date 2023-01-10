@@ -1,5 +1,5 @@
 
-import {detectIncognito} from "detect-incognito";
+import { detectIncognito } from "detectincognitojs";
 import * as Bowser from "bowser";
 import * as axios from "axios";
 import cookie from "js-cookie";
