@@ -83,6 +83,12 @@ class PvAnalytics {
             });
     }
 
+    restartSession() {
+        this._endSession();
+
+        return this.init();
+    }
+
     setDefaults(defaults = {}) {
         this._defaults = defaults;
     }
@@ -146,8 +152,18 @@ class PvAnalytics {
             const parts = atob(session_token).split(".");
 
             if (parts.length === 3 && parts[0] === this.app_token) {
+                if (this._promise) {
+                    return this._promise
+                        .then(() => {
+                            this._is_initialized = true;
+                            this._log("PvAnalytics::_startSession()", "service is ready (async)");
+                        })
+                }
+
                 this._is_initialized = true;
-                return;
+                this._log("PvAnalytics::_startSession()", "service is ready");
+
+                return new Promise((resolve) => resolve());
             } else {
                 this._endSession();
             }
@@ -173,17 +189,16 @@ class PvAnalytics {
                             sessionStorage.setItem(SESSION_COOKIE_NAME, session_token);
                         }
 
-
                         if (this._promise) {
                             return this._promise
                                 .then(() => {
                                     this._is_initialized = true;
                                     this._log("PvAnalytics::_startSession()", "service is ready (async)");
                                 })
-                        } else {
-                            this._is_initialized = true;
-                            this._log("PvAnalytics::_startSession()", "service is ready");
                         }
+
+                        this._is_initialized = true;
+                        this._log("PvAnalytics::_startSession()", "service is ready");
                     } else {
                         this._endSession();
                     }

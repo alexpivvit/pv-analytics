@@ -16,7 +16,8 @@ const pvAnalytics = new PvAnalytics({
     retry_delay: 250,                               // Retry delay
     retry_attempts: 1,                              // Retry attempts
     session_domain: window.location.host,           // Session domain
-    error_callback: (error) => {/* handle error */} // Error callback handler
+    error_callback: (error) => {/* handle error */},// Error callback handler
+    promise: new Promise((resolve) => resolve())    // Promise
 });
 
 pvAnalytics.init();
