@@ -160,6 +160,13 @@ var PvAnalytics = /*#__PURE__*/function () {
       });
     }
   }, {
+    key: "restartSession",
+    value: function restartSession() {
+      this._endSession();
+
+      return this.init();
+    }
+  }, {
     key: "setDefaults",
     value: function setDefaults() {
       var defaults = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
@@ -242,8 +249,21 @@ var PvAnalytics = /*#__PURE__*/function () {
         var parts = atob(session_token).split(".");
 
         if (parts.length === 3 && parts[0] === this.app_token) {
+          if (this._promise) {
+            return this._promise.then(function () {
+              _this2._is_initialized = true;
+
+              _this2._log("PvAnalytics::_startSession()", "service is ready (async)");
+            });
+          }
+
           this._is_initialized = true;
-          return;
+
+          this._log("PvAnalytics::_startSession()", "service is ready");
+
+          return new Promise(function (resolve) {
+            return resolve();
+          });
         } else {
           this._endSession();
         }
@@ -273,11 +293,11 @@ var PvAnalytics = /*#__PURE__*/function () {
 
                 _this2._log("PvAnalytics::_startSession()", "service is ready (async)");
               });
-            } else {
-              _this2._is_initialized = true;
-
-              _this2._log("PvAnalytics::_startSession()", "service is ready");
             }
+
+            _this2._is_initialized = true;
+
+            _this2._log("PvAnalytics::_startSession()", "service is ready");
           } else {
             _this2._endSession();
           }
