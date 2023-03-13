@@ -91,6 +91,7 @@ var PvAnalytics = /*#__PURE__*/function () {
     this._event_queue = [];
     this._session_domain = options.session_domain || window.location.host;
     this._error_callback = options.error_callback;
+    this._promise = options.promise;
 
     if (options.app_token) {
       this.app_token = options.app_token;
@@ -145,7 +146,7 @@ var PvAnalytics = /*#__PURE__*/function () {
       }).then(function () {
         return _this._processQueuedEvents();
       })["catch"](function (error) {
-        _this._log("PvAnalytics::init()", error);
+        _this._log("PvAnalytics::init() error:", error);
 
         if (typeof _this._error_callback === "function") {
           _this._error_callback(error);
@@ -257,7 +258,6 @@ var PvAnalytics = /*#__PURE__*/function () {
           var _session_token = response.data.data.session_token;
 
           if (_session_token) {
-            _this2._is_initialized = true;
             cookie__default["default"].set(SESSION_COOKIE_NAME, _session_token, {
               path: "/",
               domain: _this2._session_domain
@@ -265,6 +265,18 @@ var PvAnalytics = /*#__PURE__*/function () {
 
             if ((typeof sessionStorage === "undefined" ? "undefined" : _typeof(sessionStorage)) === "object") {
               sessionStorage.setItem(SESSION_COOKIE_NAME, _session_token);
+            }
+
+            if (_this2._promise) {
+              return _this2._promise.then(function () {
+                _this2._is_initialized = true;
+
+                _this2._log("PvAnalytics::_startSession()", "service is ready (async)");
+              });
+            } else {
+              _this2._is_initialized = true;
+
+              _this2._log("PvAnalytics::_startSession()", "service is ready");
             }
           } else {
             _this2._endSession();
@@ -323,8 +335,10 @@ var PvAnalytics = /*#__PURE__*/function () {
         params.page_load_time = page_load_time;
       }
 
-      return axios__namespace.post("".concat(this.base_url, "/event"), params)["catch"](function (error) {
-        _this3._log("PvAnalytics::_sendEvent()", error);
+      return axios__namespace.post("".concat(this.base_url, "/event"), params).then(function () {
+        return _this3._log("PvAnalytics::_sendEvent()", params);
+      })["catch"](function (error) {
+        _this3._log("PvAnalytics::_sendEvent() error:", error);
 
         if (typeof _this3._error_callback === "function") {
           _this3._error_callback(error);
@@ -431,7 +445,7 @@ var PvAnalytics = /*#__PURE__*/function () {
           data[_key] = arguments[_key];
         }
 
-        (_console = console).error.apply(_console, ["[PvAnalytics]"].concat(data));
+        (_console = console).log.apply(_console, ["[PvAnalytics]"].concat(data));
       }
     }
   }, {
