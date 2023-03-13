@@ -95,7 +95,7 @@ var PvAnalytics = /*#__PURE__*/function () {
     if (options.app_token) {
       this.app_token = options.app_token;
     } else {
-      this._log("'app_token' is invalid");
+      this._log("PvAnalytics::constructor()", "'app_token' is invalid");
 
       return;
     }
@@ -103,7 +103,7 @@ var PvAnalytics = /*#__PURE__*/function () {
     if (options.app_name) {
       this.app_name = options.app_name;
     } else {
-      this._log("'app_name' is invalid");
+      this._log("PvAnalytics::constructor()", "'app_name' is invalid");
 
       return;
     }
@@ -111,7 +111,7 @@ var PvAnalytics = /*#__PURE__*/function () {
     if (options.base_url) {
       this.base_url = options.base_url;
     } else {
-      this._log("'base_url' is invalid");
+      this._log("PvAnalytics::constructor()", "'base_url' is invalid");
 
       return;
     }
@@ -131,7 +131,7 @@ var PvAnalytics = /*#__PURE__*/function () {
       }
 
       if (!this._is_enabled) {
-        this._log("service is disabled");
+        this._log("PvAnalytics::init()", "service is disabled");
 
         return new Promise(function (resolve) {
           return resolve();
@@ -145,7 +145,7 @@ var PvAnalytics = /*#__PURE__*/function () {
       }).then(function () {
         return _this._processQueuedEvents();
       })["catch"](function (error) {
-        _this._log(error);
+        _this._log("PvAnalytics::init()", error);
 
         if (typeof _this._error_callback === "function") {
           _this._error_callback(error);
@@ -171,19 +171,19 @@ var PvAnalytics = /*#__PURE__*/function () {
       event_name = (event_name || "").trim();
 
       if (event_name === "") {
-        this._log("'event_name' is invalid");
+        this._log("PvAnalytics::event()", "'event_name' is invalid");
 
         return;
       }
 
       if (_typeof(user_data) !== "object") {
-        this._log("'user_data' is invalid");
+        this._log("PvAnalytics::event()", "'user_data' is invalid");
 
         return;
       }
 
       if (!this._is_enabled) {
-        this._log("service is disabled");
+        this._log("PvAnalytics::event()", "service is disabled");
 
         return;
       }
@@ -205,6 +205,8 @@ var PvAnalytics = /*#__PURE__*/function () {
       if (!session_token && (typeof sessionStorage === "undefined" ? "undefined" : _typeof(sessionStorage)) === "object") {
         session_token = sessionStorage.getItem(SESSION_COOKIE_NAME);
       }
+
+      this._log("PvAnalytics::getSessionToken()", session_token);
 
       return session_token;
     }
@@ -322,7 +324,7 @@ var PvAnalytics = /*#__PURE__*/function () {
       }
 
       return axios__namespace.post("".concat(this.base_url, "/event"), params)["catch"](function (error) {
-        _this3._log(error);
+        _this3._log("PvAnalytics::_sendEvent()", error);
 
         if (typeof _this3._error_callback === "function") {
           _this3._error_callback(error);
@@ -421,9 +423,15 @@ var PvAnalytics = /*#__PURE__*/function () {
     }
   }, {
     key: "_log",
-    value: function _log(msg) {
+    value: function _log() {
       if (this._debug) {
-        console.error("[PvAnalytics] ".concat(msg));
+        var _console;
+
+        for (var _len = arguments.length, data = new Array(_len), _key = 0; _key < _len; _key++) {
+          data[_key] = arguments[_key];
+        }
+
+        (_console = console).error.apply(_console, ["[PvAnalytics]"].concat(data));
       }
     }
   }, {
