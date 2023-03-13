@@ -31,21 +31,21 @@ class PvAnalytics {
         if (options.app_token) {
             this.app_token = options.app_token;
         } else {
-            this._log("'app_token' is invalid");
+            this._log("PvAnalytics::constructor()", "'app_token' is invalid");
             return;
         }
 
         if (options.app_name) {
             this.app_name = options.app_name;
         } else {
-            this._log("'app_name' is invalid");
+            this._log("PvAnalytics::constructor()", "'app_name' is invalid");
             return;
         }
 
         if (options.base_url) {
             this.base_url = options.base_url;
         } else {
-            this._log("'base_url' is invalid");
+            this._log("PvAnalytics::constructor()", "'base_url' is invalid");
             return;
         }
 
@@ -58,7 +58,7 @@ class PvAnalytics {
         }
 
         if (!this._is_enabled) {
-            this._log("service is disabled");
+            this._log("PvAnalytics::init()", "service is disabled");
             return new Promise((resolve) => resolve());
         }
 
@@ -67,7 +67,7 @@ class PvAnalytics {
             .then(() => this._startSession())
             .then(() => this._processQueuedEvents())
             .catch((error) => {
-                this._log(error);
+                this._log("PvAnalytics::init() error:", error);
 
                 if (typeof this._error_callback === "function") {
                     this._error_callback(error);
@@ -90,17 +90,17 @@ class PvAnalytics {
         event_name = (event_name || "").trim();
 
         if (event_name === "") {
-            this._log("'event_name' is invalid");
+            this._log("PvAnalytics::event()", "'event_name' is invalid");
             return;
         }
 
         if (typeof user_data !== "object") {
-            this._log("'user_data' is invalid");
+            this._log("PvAnalytics::event()", "'user_data' is invalid");
             return;
         }
 
         if (!this._is_enabled) {
-            this._log("service is disabled");
+            this._log("PvAnalytics::event()", "service is disabled");
             return;
         }
 
@@ -117,6 +117,8 @@ class PvAnalytics {
         if (!session_token && typeof sessionStorage === "object") {
             session_token = sessionStorage.getItem(SESSION_COOKIE_NAME);
         }
+
+        this._log("PvAnalytics::getSessionToken()", session_token);
 
         return session_token;
     }
@@ -224,7 +226,7 @@ class PvAnalytics {
 
         return axios.post(`${this.base_url}/event`, params)
             .catch((error) => {
-                this._log(error);
+                this._log("PvAnalytics::_sendEvent() error:", error);
 
                 if (typeof this._error_callback === "function") {
                     this._error_callback(error);
@@ -322,9 +324,9 @@ class PvAnalytics {
         return referrer || null;
     }
 
-    _log(msg) {
+    _log(...data) {
         if (this._debug) {
-            console.error(`[PvAnalytics] ${msg}`);
+            console.error("[PvAnalytics]", ...data);
         }
     }
 
