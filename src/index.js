@@ -27,6 +27,7 @@ class PvAnalytics {
         this._event_queue = [];
         this._session_domain = options.session_domain || window.location.host;
         this._error_callback = options.error_callback;
+        this._promise = options.promise;
 
         if (options.app_token) {
             this.app_token = options.app_token;
@@ -163,8 +164,6 @@ class PvAnalytics {
                     const session_token = response.data.data.session_token;
 
                     if (session_token) {
-                        this._is_initialized = true;
-
                         cookie.set(SESSION_COOKIE_NAME, session_token, {
                             path: "/",
                             domain: this._session_domain
@@ -172,6 +171,18 @@ class PvAnalytics {
 
                         if (typeof sessionStorage === "object") {
                             sessionStorage.setItem(SESSION_COOKIE_NAME, session_token);
+                        }
+
+
+                        if (this._promise) {
+                            return this._promise
+                                .then(() => {
+                                    this._is_initialized = true;
+                                    this._log("PvAnalytics::_startSession()", "service is ready (async)");
+                                })
+                        } else {
+                            this._is_initialized = true;
+                            this._log("PvAnalytics::_startSession()", "service is ready");
                         }
                     } else {
                         this._endSession();
@@ -225,6 +236,7 @@ class PvAnalytics {
         }
 
         return axios.post(`${this.base_url}/event`, params)
+            .then(() => this._log("PvAnalytics::_sendEvent()", params))
             .catch((error) => {
                 this._log("PvAnalytics::_sendEvent() error:", error);
 
@@ -326,7 +338,7 @@ class PvAnalytics {
 
     _log(...data) {
         if (this._debug) {
-            console.error("[PvAnalytics]", ...data);
+            console.log("[PvAnalytics]", ...data);
         }
     }
 
