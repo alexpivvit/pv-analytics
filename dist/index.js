@@ -92,6 +92,9 @@ var PvAnalytics = /*#__PURE__*/function () {
     this._session_domain = options.session_domain || window.location.host;
     this._error_callback = options.error_callback;
     this._promise = options.promise;
+    this._inactivity_timeout = options.inactivity_timeout || -1;
+    this._last_action_timestamp = null;
+    this._session_timeout_handler = null;
 
     if (options.app_token) {
       this.app_token = options.app_token;
@@ -175,6 +178,8 @@ var PvAnalytics = /*#__PURE__*/function () {
   }, {
     key: "event",
     value: function event(event_name) {
+      var _this2 = this;
+
       var user_data = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
       event_name = (event_name || "").trim();
 
@@ -195,6 +200,24 @@ var PvAnalytics = /*#__PURE__*/function () {
 
         return;
       }
+
+      if (this._inactivity_timeout > 0) {
+        if (this._session_timeout_handler) {
+          this._log("PvAnalytics::event()", "clearing the timeout handler...");
+
+          clearTimeout(this._session_timeout_handler);
+        }
+
+        this._log("PvAnalytics::event()", "session will be restarted in ".concat(this._inactivity_timeout, "s"));
+
+        this._session_timeout_handler = setTimeout(function () {
+          _this2._log("PvAnalytics::event()", "restart current session...");
+
+          _this2.restartSession();
+        }, this._inactivity_timeout * 1000);
+      }
+
+      this._last_action_timestamp = Date.now();
 
       if (this._is_initialized) {
         this._sendEvent(event_name, user_data);
@@ -241,7 +264,7 @@ var PvAnalytics = /*#__PURE__*/function () {
   }, {
     key: "_startSession",
     value: function _startSession() {
-      var _this2 = this;
+      var _this3 = this;
 
       var session_token = this.getSessionToken();
 
@@ -251,9 +274,9 @@ var PvAnalytics = /*#__PURE__*/function () {
         if (parts.length === 3 && parts[0] === this.app_token) {
           if (this._promise) {
             return this._promise.then(function () {
-              _this2._is_initialized = true;
+              _this3._is_initialized = true;
 
-              _this2._log("PvAnalytics::_startSession()", "service is ready (async)");
+              _this3._log("PvAnalytics::_startSession()", "service is ready (async)");
             });
           }
 
@@ -280,32 +303,32 @@ var PvAnalytics = /*#__PURE__*/function () {
           if (_session_token) {
             cookie__default["default"].set(SESSION_COOKIE_NAME, _session_token, {
               path: "/",
-              domain: _this2._session_domain
+              domain: _this3._session_domain
             });
 
             if ((typeof sessionStorage === "undefined" ? "undefined" : _typeof(sessionStorage)) === "object") {
               sessionStorage.setItem(SESSION_COOKIE_NAME, _session_token);
             }
 
-            if (_this2._promise) {
-              return _this2._promise.then(function () {
-                _this2._is_initialized = true;
+            if (_this3._promise) {
+              return _this3._promise.then(function () {
+                _this3._is_initialized = true;
 
-                _this2._log("PvAnalytics::_startSession()", "service is ready (async)");
+                _this3._log("PvAnalytics::_startSession()", "service is ready (async)");
               });
             }
 
-            _this2._is_initialized = true;
+            _this3._is_initialized = true;
 
-            _this2._log("PvAnalytics::_startSession()", "service is ready");
+            _this3._log("PvAnalytics::_startSession()", "service is ready");
           } else {
-            _this2._endSession();
+            _this3._endSession();
           }
         } else {
-          _this2._endSession();
+          _this3._endSession();
         }
       })["catch"](function (error) {
-        _this2._endSession();
+        _this3._endSession();
 
         throw error;
       });
@@ -326,7 +349,7 @@ var PvAnalytics = /*#__PURE__*/function () {
   }, {
     key: "_sendEvent",
     value: function _sendEvent(event_name) {
-      var _this3 = this;
+      var _this4 = this;
 
       var user_data = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
       var retry_attempts = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
@@ -356,18 +379,18 @@ var PvAnalytics = /*#__PURE__*/function () {
       }
 
       return axios__namespace.post("".concat(this.base_url, "/event"), params).then(function () {
-        return _this3._log("PvAnalytics::_sendEvent()", params);
+        return _this4._log("PvAnalytics::_sendEvent()", params);
       })["catch"](function (error) {
-        _this3._log("PvAnalytics::_sendEvent() error:", error);
+        _this4._log("PvAnalytics::_sendEvent() error:", error);
 
-        if (typeof _this3._error_callback === "function") {
-          _this3._error_callback(error);
+        if (typeof _this4._error_callback === "function") {
+          _this4._error_callback(error);
         }
 
-        if (_this3._retry_on_failure && _this3._retry_delay > 0 && retry_attempts > 0) {
+        if (_this4._retry_on_failure && _this4._retry_delay > 0 && retry_attempts > 0) {
           setTimeout(function () {
-            return _this3._sendEvent(event_name, user_data, --retry_attempts);
-          }, _this3._retry_delay);
+            return _this4._sendEvent(event_name, user_data, --retry_attempts);
+          }, _this4._retry_delay);
         }
       });
     }

@@ -17,7 +17,8 @@ const pvAnalytics = new PvAnalytics({
     retry_attempts: 1,                              // Retry attempts
     session_domain: window.location.host,           // Session domain
     error_callback: (error) => {/* handle error */},// Error callback handler
-    promise: new Promise((resolve) => resolve())    // Promise
+    promise: new Promise((resolve) => resolve()),   // Promise
+    inactivity_timeout: 30*60                       // Restart a session after 1800 seconds (30 minutes) of inactivity
 });
 
 pvAnalytics.init();
