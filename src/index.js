@@ -28,6 +28,9 @@ class PvAnalytics {
         this._session_domain = options.session_domain || window.location.host;
         this._error_callback = options.error_callback;
         this._promise = options.promise;
+        this._inactivity_timeout = options.inactivity_timeout || -1;
+        this._last_action_timestamp = null;
+        this._session_timeout_handler = null;
 
         if (options.app_token) {
             this.app_token = options.app_token;
@@ -110,6 +113,22 @@ class PvAnalytics {
             this._log("PvAnalytics::event()", "service is disabled");
             return;
         }
+
+        if (this._inactivity_timeout > 0) {
+            if (this._session_timeout_handler) {
+                this._log("PvAnalytics::event()", "clearing the timeout handler...");
+                clearTimeout(this._session_timeout_handler);
+            }
+
+            this._log("PvAnalytics::event()", `session will be restarted in ${this._inactivity_timeout}s`);
+
+            this._session_timeout_handler = setTimeout(() => {
+                this._log("PvAnalytics::event()", `restart current session...`);
+                this.restartSession();
+            }, this._inactivity_timeout * 1000);
+        }
+
+        this._last_action_timestamp = Date.now();
 
         if (this._is_initialized) {
             this._sendEvent(event_name, user_data);
