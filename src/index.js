@@ -7,6 +7,8 @@ import _ from "lodash";
 
 const SESSION_COOKIE_NAME = "_analytics_sid";
 
+const INITIAL_SESSION_COOKIE_NAME = "_analytics_initial_sid";
+
 /**
 // session token structure
 const session_token = "{app_token}.{timestamp}.{random_string}";
@@ -120,12 +122,7 @@ class PvAnalytics {
                 clearTimeout(this._session_timeout_handler);
             }
 
-            this._log("PvAnalytics::event()", `session will be restarted in ${this._inactivity_timeout}s`);
-
-            this._session_timeout_handler = setTimeout(() => {
-                this._log("PvAnalytics::event()", `restart current session...`);
-                this.restartSession();
-            }, this._inactivity_timeout * 1000);
+            this._restartSessionDebounced();
         }
 
         this._last_action_timestamp = Date.now();
@@ -149,12 +146,33 @@ class PvAnalytics {
         return session_token;
     }
 
+    getInitialSessionToken() {
+        let initial_session_token = cookie.get(INITIAL_SESSION_COOKIE_NAME);
+
+        if (!initial_session_token && typeof sessionStorage === "object") {
+            initial_session_token = sessionStorage.getItem(INITIAL_SESSION_COOKIE_NAME);
+        }
+
+        this._log("PvAnalytics::getInitialSessionToken()", initial_session_token);
+
+        return initial_session_token;
+    }
+
     _detectIncognito() {
         return new Promise((resolve) => {
             detectIncognito()
                 .then((result) => resolve(!!result.isPrivate))
                 .catch(() => resolve(false));
         })
+    }
+
+    _restartSessionDebounced() {
+        this._log("PvAnalytics::event()", `session will be restarted in ${this._inactivity_timeout}s`);
+
+        this._session_timeout_handler = setTimeout(() => {
+            this._log("PvAnalytics::event()", `restart current session...`);
+            this.restartSession();
+        }, this._inactivity_timeout * 1000);
     }
 
     _processQueuedEvents() {
@@ -231,7 +249,28 @@ class PvAnalytics {
             });
     }
 
+    _saveInitialSessionToken() {
+        const initial_session_token = this.getInitialSessionToken();
+
+        if (initial_session_token) {
+            return;
+        }
+
+        const session_token = this.getSessionToken();
+
+        cookie.set(INITIAL_SESSION_COOKIE_NAME, session_token, {
+            path: "/",
+            domain: this._session_domain
+        });
+
+        if (typeof sessionStorage === "object") {
+            sessionStorage.setItem(INITIAL_SESSION_COOKIE_NAME, session_token);
+        }
+    }
+
     _endSession() {
+        this._saveInitialSessionToken();
+
         this._is_initialized = false;
 
         cookie.remove(SESSION_COOKIE_NAME, {
@@ -250,6 +289,7 @@ class PvAnalytics {
         }
 
         const params = _.extend({}, this._defaults, {
+            initial_session_token: this.getInitialSessionToken() || this.getSessionToken(),
             session_token: this.getSessionToken(),
             event_name,
             browser: this._getBrowserDetails(),

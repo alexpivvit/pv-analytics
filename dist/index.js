@@ -67,6 +67,7 @@ function _createClass(Constructor, protoProps, staticProps) {
 }
 
 var SESSION_COOKIE_NAME = "_analytics_sid";
+var INITIAL_SESSION_COOKIE_NAME = "_analytics_initial_sid";
 /**
 // session token structure
 const session_token = "{app_token}.{timestamp}.{random_string}";
@@ -178,8 +179,6 @@ var PvAnalytics = /*#__PURE__*/function () {
   }, {
     key: "event",
     value: function event(event_name) {
-      var _this2 = this;
-
       var user_data = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
       event_name = (event_name || "").trim();
 
@@ -208,13 +207,7 @@ var PvAnalytics = /*#__PURE__*/function () {
           clearTimeout(this._session_timeout_handler);
         }
 
-        this._log("PvAnalytics::event()", "session will be restarted in ".concat(this._inactivity_timeout, "s"));
-
-        this._session_timeout_handler = setTimeout(function () {
-          _this2._log("PvAnalytics::event()", "restart current session...");
-
-          _this2.restartSession();
-        }, this._inactivity_timeout * 1000);
+        this._restartSessionDebounced();
       }
 
       this._last_action_timestamp = Date.now();
@@ -242,6 +235,19 @@ var PvAnalytics = /*#__PURE__*/function () {
       return session_token;
     }
   }, {
+    key: "getInitialSessionToken",
+    value: function getInitialSessionToken() {
+      var initial_session_token = cookie__default["default"].get(INITIAL_SESSION_COOKIE_NAME);
+
+      if (!initial_session_token && (typeof sessionStorage === "undefined" ? "undefined" : _typeof(sessionStorage)) === "object") {
+        initial_session_token = sessionStorage.getItem(INITIAL_SESSION_COOKIE_NAME);
+      }
+
+      this._log("PvAnalytics::getInitialSessionToken()", initial_session_token);
+
+      return initial_session_token;
+    }
+  }, {
     key: "_detectIncognito",
     value: function _detectIncognito() {
       return new Promise(function (resolve) {
@@ -251,6 +257,19 @@ var PvAnalytics = /*#__PURE__*/function () {
           return resolve(false);
         });
       });
+    }
+  }, {
+    key: "_restartSessionDebounced",
+    value: function _restartSessionDebounced() {
+      var _this2 = this;
+
+      this._log("PvAnalytics::event()", "session will be restarted in ".concat(this._inactivity_timeout, "s"));
+
+      this._session_timeout_handler = setTimeout(function () {
+        _this2._log("PvAnalytics::event()", "restart current session...");
+
+        _this2.restartSession();
+      }, this._inactivity_timeout * 1000);
     }
   }, {
     key: "_processQueuedEvents",
@@ -334,8 +353,29 @@ var PvAnalytics = /*#__PURE__*/function () {
       });
     }
   }, {
+    key: "_saveInitialSessionToken",
+    value: function _saveInitialSessionToken() {
+      var initial_session_token = this.getInitialSessionToken();
+
+      if (initial_session_token) {
+        return;
+      }
+
+      var session_token = this.getSessionToken();
+      cookie__default["default"].set(INITIAL_SESSION_COOKIE_NAME, session_token, {
+        path: "/",
+        domain: this._session_domain
+      });
+
+      if ((typeof sessionStorage === "undefined" ? "undefined" : _typeof(sessionStorage)) === "object") {
+        sessionStorage.setItem(INITIAL_SESSION_COOKIE_NAME, session_token);
+      }
+    }
+  }, {
     key: "_endSession",
     value: function _endSession() {
+      this._saveInitialSessionToken();
+
       this._is_initialized = false;
       cookie__default["default"].remove(SESSION_COOKIE_NAME, {
         path: "/",
@@ -359,6 +399,7 @@ var PvAnalytics = /*#__PURE__*/function () {
       }
 
       var params = ___default["default"].extend({}, this._defaults, {
+        initial_session_token: this.getInitialSessionToken() || this.getSessionToken(),
         session_token: this.getSessionToken(),
         event_name: event_name,
         browser: this._getBrowserDetails(),
