@@ -27,7 +27,7 @@ class PvAnalytics {
         this._retry_delay = options.retry_delay || 250;
         this._retry_attempts = options.retry_attempts || 1;
         this._event_queue = [];
-        this._session_domain = options.session_domain || window.location.host;
+        this._session_domain = options.session_domain || (typeof window === "object" ? window.location.host : "");
         this._error_callback = options.error_callback;
         this._promise = options.promise;
         this._inactivity_timeout = options.inactivity_timeout || -1;
