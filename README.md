@@ -19,6 +19,7 @@ const pvAnalytics = new PvAnalytics({
     error_callback: (error) => {/* handle error */},// Error callback handler
     promise: new Promise((resolve) => resolve()),   // Promise
     inactivity_timeout: 30*60                       // Restart a session after 1800 seconds (30 minutes) of inactivity
+    is_enabled: true                                // Turn the plugin on/off
 });
 
 pvAnalytics.init();
