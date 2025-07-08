@@ -54,7 +54,9 @@ class PvAnalytics {
             return;
         }
 
-        this._is_enabled = typeof window === "object";
+        if (options.is_enabled) {
+            this._is_enabled = typeof window === "object";
+        }
     }
 
     init(retry_attempts = null) {
