@@ -115,7 +115,9 @@ var PvAnalytics = /*#__PURE__*/function () {
       this._log("PvAnalytics::constructor()", "'base_url' is invalid");
       return;
     }
-    this._is_enabled = (typeof window === "undefined" ? "undefined" : _typeof(window)) === "object";
+    if (options.is_enabled) {
+      this._is_enabled = (typeof window === "undefined" ? "undefined" : _typeof(window)) === "object";
+    }
   }
   return _createClass(PvAnalytics, [{
     key: "init",
