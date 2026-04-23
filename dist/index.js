@@ -27,10 +27,18 @@ function _interopNamespace(e) {
 }
 
 var Bowser__namespace = /*#__PURE__*/_interopNamespace(Bowser);
-var axios__namespace = /*#__PURE__*/_interopNamespace(axios);
+var axios__default = /*#__PURE__*/_interopDefaultLegacy(axios);
 var cookie__default = /*#__PURE__*/_interopDefaultLegacy(cookie);
 var ___default = /*#__PURE__*/_interopDefaultLegacy(_);
 
+function _arrayLikeToArray(r, a) {
+  (null == a || a > r.length) && (a = r.length);
+  for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e];
+  return n;
+}
+function _arrayWithHoles(r) {
+  if (Array.isArray(r)) return r;
+}
 function _classCallCheck(a, n) {
   if (!(a instanceof n)) throw new TypeError("Cannot call a class as a function");
 }
@@ -44,6 +52,39 @@ function _createClass(e, r, t) {
   return r && _defineProperties(e.prototype, r), t && _defineProperties(e, t), Object.defineProperty(e, "prototype", {
     writable: !1
   }), e;
+}
+function _iterableToArrayLimit(r, l) {
+  var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"];
+  if (null != t) {
+    var e,
+      n,
+      i,
+      u,
+      a = [],
+      f = !0,
+      o = !1;
+    try {
+      if (i = (t = t.call(r)).next, 0 === l) {
+        if (Object(t) !== t) return;
+        f = !1;
+      } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0);
+    } catch (r) {
+      o = !0, n = r;
+    } finally {
+      try {
+        if (!f && null != t.return && (u = t.return(), Object(u) !== u)) return;
+      } finally {
+        if (o) throw n;
+      }
+    }
+    return a;
+  }
+}
+function _nonIterableRest() {
+  throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+}
+function _slicedToArray(r, e) {
+  return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest();
 }
 function _toPrimitive(t, r) {
   if ("object" != typeof t || !t) return t;
@@ -67,6 +108,13 @@ function _typeof(o) {
   } : function (o) {
     return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o;
   }, _typeof(o);
+}
+function _unsupportedIterableToArray(r, a) {
+  if (r) {
+    if ("string" == typeof r) return _arrayLikeToArray(r, a);
+    var t = {}.toString.call(r).slice(8, -1);
+    return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0;
+  }
 }
 
 var SESSION_COOKIE_NAME = "_analytics_sid";
@@ -273,7 +321,7 @@ var PvAnalytics = /*#__PURE__*/function () {
         app_token: this.app_token,
         app_name: this.app_name
       };
-      return axios__namespace.post("".concat(this.base_url, "/session-start"), params).then(function (response) {
+      return axios__default["default"].post("".concat(this.base_url, "/session-start"), params).then(function (response) {
         if (response.data.status) {
           var _session_token = response.data.data.session_token;
           if (_session_token) {
@@ -311,6 +359,9 @@ var PvAnalytics = /*#__PURE__*/function () {
         return;
       }
       var session_token = this.getSessionToken();
+      if (!session_token) {
+        return;
+      }
       cookie__default["default"].set(INITIAL_SESSION_COOKIE_NAME, session_token, {
         path: "/",
         domain: this._session_domain
@@ -359,7 +410,7 @@ var PvAnalytics = /*#__PURE__*/function () {
       if (page_load_time > 0) {
         params.page_load_time = page_load_time;
       }
-      return axios__namespace.post("".concat(this.base_url, "/event"), params).then(function () {
+      return axios__default["default"].post("".concat(this.base_url, "/event"), params).then(function () {
         return _this4._log("PvAnalytics::_sendEvent()", params);
       })["catch"](function (error) {
         _this4._log("PvAnalytics::_sendEvent() error:", error);
@@ -401,8 +452,13 @@ var PvAnalytics = /*#__PURE__*/function () {
   }, {
     key: "_pageLoadTime",
     value: function _pageLoadTime() {
-      if ((typeof window === "undefined" ? "undefined" : _typeof(window)) === "object" && window.performance && window.performance.timing) {
-        return window.performance.timing.loadEventEnd - window.performance.timing.navigationStart;
+      if ((typeof window === "undefined" ? "undefined" : _typeof(window)) === "object" && window.performance) {
+        var _window$performance$g = window.performance.getEntriesByType("navigation"),
+          _window$performance$g2 = _slicedToArray(_window$performance$g, 1),
+          entry = _window$performance$g2[0];
+        if (entry && entry.loadEventEnd > 0) {
+          return Math.round(entry.loadEventEnd - entry.startTime);
+        }
       }
       return null;
     }
