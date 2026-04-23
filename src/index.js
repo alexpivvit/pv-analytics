@@ -1,6 +1,6 @@
 import { detectIncognito } from "detect-incognito";
 import * as Bowser from "bowser";
-import * as axios from "axios";
+import axios from "axios";
 import cookie from "js-cookie";
 import _ from "lodash";
 
@@ -259,6 +259,10 @@ class PvAnalytics {
 
         const session_token = this.getSessionToken();
 
+        if (!session_token) {
+            return;
+        }
+
         cookie.set(INITIAL_SESSION_COOKIE_NAME, session_token, {
             path: "/",
             domain: this._session_domain
@@ -357,8 +361,11 @@ class PvAnalytics {
     }
 
     _pageLoadTime() {
-        if (typeof window === "object" && window.performance && window.performance.timing) {
-            return window.performance.timing.loadEventEnd - window.performance.timing.navigationStart;
+        if (typeof window === "object" && window.performance) {
+            const [entry] = window.performance.getEntriesByType("navigation");
+            if (entry && entry.loadEventEnd > 0) {
+                return Math.round(entry.loadEventEnd - entry.startTime);
+            }
         }
 
         return null;
@@ -419,13 +426,13 @@ class PvAnalytics {
 
     _isValidHttpUrl(string) {
         let url;
-        
+
         try {
-          url = new URL(string);
+            url = new URL(string);
         } catch {
-          return false;  
+            return false;
         }
-      
+
         return url.protocol === "http:" || url.protocol === "https:";
     }
 }
